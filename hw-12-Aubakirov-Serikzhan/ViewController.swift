@@ -12,6 +12,8 @@ class ViewController: UIViewController {
     // MARK: Outlets
     private lazy var timerLabel: UILabel = {
         let label = UILabel()
+        label.text = "\(workTime)"
+        label.textColor = .red
         label.font = UIFont.preferredFont(forTextStyle: .largeTitle)
         label.textAlignment = .center
         label.translatesAutoresizingMaskIntoConstraints = false
@@ -21,16 +23,25 @@ class ViewController: UIViewController {
     private lazy var playPauseButton: UIButton = {
         let button = UIButton()
         button.clipsToBounds = true
+        button.setTitle("Play", for: .normal)
         button.backgroundColor = .clear
-        button.setTitleColor(.cyan, for: .normal)
-        button.addTarget(self, action: #selector(playPauseButtonButtonPressed), for: .touchUpInside)
+        button.setTitleColor(.red, for: .normal)
+        button.addTarget(self, action: #selector(playPauseButtonTapped), for: .touchUpInside)
         button.translatesAutoresizingMaskIntoConstraints = false
         return button
     }()
-   
-  
+    
+    var isWorkTime = true
+    var isStarted = false
+    
+    var workTime = 25
+    var restTime = 10
+    
+    var timer: Timer?
+    
     override func viewDidLoad() {
         super.viewDidLoad()
+        timerLabel.text = "\(workTime):00"
         setupHierarchy()
         setupConstaints()
         
@@ -42,7 +53,7 @@ class ViewController: UIViewController {
         view.addSubview(timerLabel)
         view.addSubview(playPauseButton)
     }
-
+    
     func setupConstaints() {
         NSLayoutConstraint.activate([
             timerLabel.centerXAnchor.constraint(equalTo: view.centerXAnchor),
@@ -60,9 +71,47 @@ class ViewController: UIViewController {
     
     // MARK: Actions
     
-    @objc private func playPauseButtonButtonPressed() {
-        print("play pause button pressed")
+    @objc private func playPauseButtonTapped(_ sender: UIButton) {
+        if isStarted {
+                  pauseTimer()
+            playPauseButton.setTitle("Play", for: .normal)
+              } else {
+                  startTimer()
+                  playPauseButton.setTitle("Pause", for: .normal)
+              }
+              isStarted = !isStarted
     }
-
+    func startTimer() {
+            timer = Timer.scheduledTimer(withTimeInterval: 1.0, repeats: true) { timer in
+                self.timerFired()
+            }
+        }
+        
+        func pauseTimer() {
+            timer?.invalidate()
+            timer = nil
+        }
+        
+        func timerFired() {
+            if isWorkTime {
+                workTime -= 1
+                timerLabel.text = "\(workTime):00"
+                timerLabel.textColor = .red
+                playPauseButton.setTitleColor(.red, for: .normal)
+                if workTime == 0 {
+                    isWorkTime = false
+                    restTime = 10
+                }
+            } else {
+                restTime -= 1
+                timerLabel.text = "\(restTime):00"
+                timerLabel.textColor = .green
+                playPauseButton.setTitleColor(.green, for: .normal)
+                if restTime == 0 {
+                    isWorkTime = true
+                    workTime = 25
+                }
+            }
+        }
 }
 
